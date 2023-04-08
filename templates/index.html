@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Generator</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.3.3/firebase-auth.js"></script>
+<script src="https://apis.google.com/js/platform.js" async defer></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js" integrity="sha512-XHDcSyqhOoO2ocB7sKOCJEkUjw/pQCJViP1ynpy+EGh/LggzrP6U/V3a++LQTnZT7sCQKeHRyWHfhN2afjXjCg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.min.js"></script>
+         <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .main-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+        }
+
+        .card {
+            border: none;
+            background-color: #f8f9fa;
+        }
+
+        .card-body {
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+
+        #questions {
+            column-count: 2;
+        }
+    </style>
+</head>
+<body>
+ <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="main-container">
+                    <h1 class="mb-4">Gere sua pergunta: <small class="text-muted">sistema v.0.0.1</small></h1>
+                    <div class="form-group">
+                        <label for="pdf-file" class="btn btn-primary">
+                            <input type="file" id="pdf-file" accept=".pdf" style="display:none;">
+                            Carregar PDF
+                        </label>
+                        <form action="/" method="post">
+                            <div class="form-group mt-3">
+                                <label for="text">Digite o texto:</label>
+                                <textarea name="text" id="text" rows="10" class="form-control" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-3">Gerar Perguntas</button>
+                        </form>
+                    </div>
+                    {% if questions %}
+                        <h2 class="mt-5">Perguntas Geradas:</h2>
+                        <div class="card-columns" id="questions">
+                            {% for question in questions %}
+                                <div class="card">
+                                    <div class="card-body">
+                                        {{ question }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/compromise"></script>
+    <script type="text/javascript">
+  // Configurando o PDF.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.8.335/pdf.worker.min.js';
+
+// Função que extrai o texto de um arquivo PDF usando a biblioteca PDF.js
+function extractTextFromPDF(pdfData) {
+  return pdfjsLib.getDocument(pdfData).promise.then((pdf) => {
+    // Criando uma variável para armazenar o texto extraído
+    let text = '';
+    // Para cada página do PDF
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      // Obtendo a página
+      pdf.getPage(pageNum).then((page) => {
+        // Obtendo o conteúdo de texto da página
+        page.getTextContent().then((content) => {
+          // Adicionando o texto extraído à variável 'text'
+          text += content.items.map((item) => item.str).join(' ') + ' ';
+          // Se chegamos à última página, retornamos o texto completo
+          if (pageNum === pdf.numPages) {
+            return text;
+          }
+        });
+      });
+    }
+  });
+}
+
+// Função que usa a biblioteca Compromise para tratar o texto extraído do PDF
+function processText2() {
+  // Obtendo o texto inserido no textarea ou o texto extraído do PDF
+  const text = document.getElementById('text').value || document.getElementById('pdf-text').innerText;
+  // Tratando o texto com a biblioteca Compromise
+  const doc = nlp(text);
+  // Extraindo as frases interrogativas do texto
+  const questions = doc.questions().data();
+  // Exibindo as perguntas geradas na tela
+  const questionsContainer = document.getElementById('questions');
+  questionsContainer.innerHTML = '';
+  questions.forEach((question) => {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body');
+    const questionTitle = document.createElement('h5');
+    questionTitle.classList.add('card-title');
+    questionTitle.textContent = question.text;
+    const questionAnswer = document.createElement('p');
+    questionAnswer.classList.add('card-text');
+    questionAnswer.textContent = question.answer || '';
+    cardBody.appendChild(questionTitle);
+    cardBody.appendChild(questionAnswer);
+    card.appendChild(cardBody);
+    questionsContainer.appendChild(card);
+  });
+}
+
+// Obtendo o elemento de input de arquivo e o elemento de exibição do texto extraído
+const input = document.getElementById('pdf-file');
+const textContainer = document.getElementById('pdf-text');
+
+// Quando o usuário selecionar um arquivo PDF
+input.addEventListener('change', () => {
+  // Verificando se o usuário selecionou um arquivo
+  if (input.files && input.files[0]) {
+    // Criando um novo leitor de arquivos
+    const reader = new FileReader();
+    // Quando o arquivo for carregado
+    reader.onload = () => {
+      // Obtendo o conteúdo do arquivo PDF como um array buffer
+      const pdfData = new Uint8Array(reader.result);
+      // Carregando o PDF
+      pdfjsLib.getDocument(pdfData).promise.then(async pdf => {
+        // Criando uma variável para armazenar o texto extraído
+        let text = '';
+        // Para cada página do PDF
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          // Obtendo a página
+          const page = await pdf.getPage(pageNum);
+          // Obtendo o conteúdo de texto da página
+          const content = await page.getTextContent();
+          // Convertendo o conteúdo para uma string com Compromise.js
+          const pageText = nlp(content.items.map(item => item.str).join(' ')).normalize().out('text');
+          // Adicionando o texto extraído à variável 'text'
+          text += pageText + ' ';
+          // Se chegamos à última página, exibimos o texto completo na tela
+          if (pageNum === pdf.numPages) {
+            document.getElementById('text').value = text;
+          }
+        }
+      });
+    };
+    // Lendo o arquivo como um array buffer
+    reader.readAsArrayBuffer(input.files[0]);
+  }
+});
+  </script>
+</body>
+</html>
