@@ -10,5 +10,5 @@ RUN pip install --upgrade cython
 RUN pip install -r requirements.txt
 ENV PYTHONUNBUFFERED 1
 COPY . .
-EXPOSE 5000
+EXPOSE 8000
 CMD python PythonApplication3.py
