@@ -20,6 +20,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          
+
       - run: npm install -g vercel
       - run: vercel --token ${{ secrets.VERCEL_KEY }} --yes
